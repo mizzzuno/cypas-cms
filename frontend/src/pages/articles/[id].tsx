@@ -1,42 +1,32 @@
 import { Loader } from '@mantine/core'
 import { Article } from '@prisma/client'
 import { NextPage } from 'next'
-import { useSearchParams } from 'next/navigation'
 import { useLayoutEffect, useRef } from 'react'
+import { useRouter } from 'next/router'
 
 import { Preview } from '@/features/article'
 import { useGetApi } from '@/hooks/useApi'
 
 // articles/[id]のページ
 const ArticlePage: NextPage = () => {
-  const searchParams = useSearchParams()
-  const id = searchParams.get('id') || '' // 一回目のレンダリングで正常なidが取得できる
-  const ref = useRef<HTMLIFrameElement>(null)
+  const router = useRouter()
+  const { id = '' } = router.query as { id?: string }
+  const ref = useRef<HTMLDivElement>(null)
 
-  // 記事を取得
   const { data: article } = useGetApi<Article>(`/articles/${id}`)
 
-  // iframeで呼び出す側に高さを渡す
   useLayoutEffect(() => {
     if (!ref.current) return
-
     const height = ref.current.clientHeight
     const sendEmbedSizeInfo = () => {
-      window.parent.postMessage(
-        {
-          height,
-        },
-        '*',
-      )
+      window.parent.postMessage({ height }, '*')
     }
-
     sendEmbedSizeInfo()
     window.addEventListener('resize', sendEmbedSizeInfo)
     return () => window.removeEventListener('resize', sendEmbedSizeInfo)
-  }, [article]) // articleが取得した時に発火させる
+  }, [article])
 
-  // 記事、idがない場合はローディング
-  if (!article || !id) {
+  if (!router.isReady || !article || !id) {
     return (
       <div className='h-screen bg-[#141517] grid place-items-center'>
         <Loader size='lg' />
@@ -44,21 +34,17 @@ const ArticlePage: NextPage = () => {
     )
   }
 
-  // 記事のプレビュー
   return (
     <>
       <div className='max-w-800px' ref={ref}>
         <Preview markdown={article.body} />
       </div>
-
-      {/* ZennのPreviewをダークモードに */}
       <style jsx global>{`
         body {
           background-color: #141517;
         }
         .znc {
           background-color: #141517;
-          color: #c1c2c5;
         }
         .znc h1,
         .znc h2 {
@@ -97,10 +83,6 @@ const ArticlePage: NextPage = () => {
           background: #141517;
         }
       `}</style>
-      {/* c1c2c5 文字 */}
-      {/* 141517 背景 */}
-      {/* 373a40 border */}
-      {/* 323e52 code, 微妙に明るい色 */}
     </>
   )
 }

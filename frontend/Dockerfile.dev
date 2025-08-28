@@ -1,5 +1,5 @@
 # メインイメージを軽いnodeに
-FROM node:lts-buster-slim
+FROM node:lts-bookworm-slim
 
 RUN apt-get update && apt-get install -y \
   openssl

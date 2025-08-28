@@ -1,5 +1,6 @@
 import { NextPage } from 'next'
-import { useSearchParams } from 'next/navigation'
+// import { useSearchParams } from 'next/navigation'
+import { useRouter } from 'next/router'
 
 import { Layout } from '@/components/Layout'
 import { SectionArticles, SectionQuizzes } from '@/features/section'
@@ -8,9 +9,19 @@ import { CourseWithSections, SectionWithRelation } from '@/types'
 
 // courses/[courseId]/[sectionId]のページ
 const Courses: NextPage = () => {
-  const searchParams = useSearchParams()
-  const sectionId = searchParams.get('sectionId') || ''
-  const courseId = searchParams.get('courseId') || ''
+  // const searchParams = useSearchParams()
+  // const sectionId = searchParams.get('sectionId') || ''
+  // const courseId = searchParams.get('courseId') || ''
+  const router = useRouter()
+  const { courseId = '', sectionId = '' } = router.query as {
+    courseId?: string
+    sectionId?: string
+  }
+
+  // ルーター未準備なら何も表示しない（誤判定防止）
+  if (!router.isReady) {
+    return <Layout />
+  }
 
   // セクションを取得
   const { data: section } = useGetApi<SectionWithRelation>(
@@ -43,23 +54,11 @@ const Courses: NextPage = () => {
       ]}
     >
       <h1>{titleName}</h1>
-
-      {/* セクションタイプに対応するコンポーネントを表示 */}
       <div>
-        {section.type === 'quiz' && (
-          <div>
-            <SectionQuizzes section={section} />
-          </div>
-        )}
-        {section.type === 'article' && (
-          <div>
-            <SectionArticles section={section} />
-          </div>
-        )}
-        {section.type === 'sandbox' && (
-          <div>
-            <SectionArticles section={section} />
-          </div>
+        {section.type === 'quiz' ? (
+          <SectionQuizzes section={section} />
+        ) : (
+          <SectionArticles section={section} />
         )}
       </div>
     </Layout>

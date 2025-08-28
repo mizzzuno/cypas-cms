@@ -1,22 +1,20 @@
-// react-mdは古い記法があるのでトランスパイルする
-const withTM = require('next-transpile-modules')([
-  '@uiw/react-md-editor',
-  '@uiw/react-markdown-preview',
-])
 // WindiCSSのプラグイン
 const WindiCSSWebpackPlugin = require('windicss-webpack-plugin')
 
+// next-transpile-modules を使うと Next 13.x で watchOptions 周りの TypeError が出るため
+// 公式の transpilePackages を利用して同等機能を実現する
 /** @type {import('next').NextConfig} */
-module.exports = withTM({
-  reactStrictMode: false, // devで起きる2度のレンダリングをさせない
-  swcMinify: true, // swcでminifyする
-  output: 'standalone', // ビルドしたときにindex.htmlを生成する
-  optimizeFonts: true, // フォントを最適化する
+module.exports = {
+  reactStrictMode: false,
+  swcMinify: true,
+  optimizeFonts: true,
   images: {
-    domains: ['localhost', 'cms-storage.cypas.sec'], // NextImageで別ドメインの画像を許容する
+    domains: ['localhost', 'cms-storage.cypas.sec'],
   },
+  // 以前 withTM で指定していたパッケージ
+  transpilePackages: ['@uiw/react-md-editor', '@uiw/react-markdown-preview'],
   webpack(config) {
     config.plugins.push(new WindiCSSWebpackPlugin())
     return config
   },
-})
+}

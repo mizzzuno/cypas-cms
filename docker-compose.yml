@@ -1,4 +1,4 @@
-version: '3.9'
+version: "3.9"
 services:
   app:
     ports:
@@ -15,6 +15,9 @@ services:
       - next_data:/app/.next
     environment:
       - WATCHPACK_POLLING=true # ホットリロード（同期に必要）
+      - FAST_REFRESH=false
+      - NEXT_TELEMETRY_DISABLED=1
+      - NEXT_PRIVATE_DISABLE_CONCURRENT_FEATURES=1
     command: >
       bash -c "
       yarn prisma migrate dev --name init &&
@@ -25,7 +28,7 @@ services:
       - db
     restart: on-failure # 失敗したら再度コンテナを建てる
   db:
-    image: 'postgres:latest'
+    image: "postgres:latest"
     expose:
       - 5432 # 他コンテナからアクセスできるポート番号
     tty: true
@@ -36,15 +39,15 @@ services:
       - postgres-db:/var/lib/postgresql/data
   minio:
     image: minio/minio:latest
-    command: ['server', '/data', '--console-address', ':9090']
+    command: ["server", "/data", "--console-address", ":9090"]
     volumes:
-      - 'minio:/data'
+      - "minio:/data"
     environment:
       - MINIO_ROOT_USER=minio_root
       - MINIO_ROOT_PASSWORD=minio_password
     ports:
-      - '8003:9000'
-      - '9090:9090'
+      - "8003:9000"
+      - "9090:9090"
   # bucketsを作るためのコンテナ
   createbuckets:
     image: minio/mc:latest
